@@ -1,2 +1,2 @@
 # CookieMonsterBot
-Bitmap chess engine implemented in c
+Bitmap chess engine implemented in c for fun
