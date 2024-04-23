@@ -48,11 +48,26 @@ void TestKnightAttack()
     DestroyBoard(board);
 }
 
+void TestKingAttacks()
+{
+
+    board_t *board = NULL;
+
+    puts("Test knight attacks\n");
+    board = CreateBoard();
+    
+    PrintBitsBoard(KingAttacks[a4]);
+    PrintBitsBoard(KingAttacks[e5]);
+
+    DestroyBoard(board);
+}
+
 int main()
 {
     TestBoard();
     TestPawnAttacks();
     TestKnightAttack();
+    TestKingAttacks();
 
     return 0;
 }

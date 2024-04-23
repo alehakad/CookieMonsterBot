@@ -42,6 +42,7 @@ bitmap_t GeneratePawnAttacks(int square, color_t color);
 
 extern bitmap_t PawnAttacks[N_SQUARES*N_SQUARES][ALL];
 extern bitmap_t KnightAttacks[N_SQUARES*N_SQUARES];
+extern bitmap_t KingAttacks[N_SQUARES*N_SQUARES];
 
 
 void PrintBoard(board_t *board);

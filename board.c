@@ -36,8 +36,11 @@ static bitmap_t MaskFileLUT[N_SQUARES];
 static bitmap_t PieceLUT[N_SQUARES*N_SQUARES];
 bitmap_t PawnAttacks[N_SQUARES*N_SQUARES][ALL];
 bitmap_t KnightAttacks[N_SQUARES*N_SQUARES];
+bitmap_t KingAttacks[N_SQUARES*N_SQUARES];
 
 static int KnightsMoves[8][2] = {{2,1},{2,-1},{-2,1},{-2,-1},{1,2},{1,-2},{-1,2},{-1,-2}};
+static int KingMoves[8][2] = {{1,1},{1,0},{1,-1},{-1,1},{-1,0},{-1,-1},{0,-1},{0,1}};
+
 
 int GetRank(int index)
 {
@@ -194,18 +197,7 @@ bitmap_t GeneratePawnAttacks(int square, color_t color)
 
 }
 
-/* init lut of pawn attacks for every square */
-void InitPawnAttacks()
-{
-    int square = 0;
 
-    for (; square<64; ++square)
-    {
-        PawnAttacks[square][WHITE] = GeneratePawnAttacks(square, WHITE);
-        PawnAttacks[square][BLACK] = GeneratePawnAttacks(square, BLACK);
-    }
-
-}
 
 
 /* 
@@ -237,18 +229,30 @@ bitmap_t GenerateKnightAttacks(int square)
     return board;
 }
 
-/* init lut of pawn attacks for every square */
-void InitKnightAttacks()
-{
-    int square = 0;
 
-    for (; square<64; ++square)
+bitmap_t GenerateKingAttacks(int square)
+{
+    int i = 0;
+    int x = 0, y = 0, new_x = 0, new_y = 0;
+    bitmap_t board = 0L;
+
+    x = GetRank(square);
+    y = GetFile(square);
+
+    for (i=0; i<8; ++i)
     {
-        KnightAttacks[square] = GenerateKnightAttacks(square);
+        new_x = x + KingMoves[i][0];
+        new_y = y + KingMoves[i][1];
+
+        if (CheckMoveInBoard(new_x, new_y))
+        {
+            board = BitBoardSetOn(board, GetIndex(new_x, new_y));
+        }
+        
     }
 
+    return board;
 }
-
 
 static char GetFigure(board_t *board, color_t color, int square)
 {
@@ -356,7 +360,20 @@ void PrintBoard(board_t *board)
 
 #endif
 
+/* init lut of pawns, knight attacks for every square */
+void InitLeaperAttacks()
+{
+    int square = 0;
 
+    for (; square<64; ++square)
+    {
+        PawnAttacks[square][WHITE] = GeneratePawnAttacks(square, WHITE);
+        PawnAttacks[square][BLACK] = GeneratePawnAttacks(square, BLACK);
+        KnightAttacks[square] = GenerateKnightAttacks(square);
+        KingAttacks[square] = GenerateKingAttacks(square);
+    }
+
+}
 
 board_t *CreateBoard()
 {
@@ -376,8 +393,7 @@ board_t *CreateBoard()
     FillLuts();
 
     /* init attacks luts for pieces */
-    InitPawnAttacks();
-    InitKnightAttacks();
+    InitLeaperAttacks();
 
     return board;
 }
