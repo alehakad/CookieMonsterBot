@@ -35,9 +35,9 @@ static bitmap_t ClearFileLUT[N_SQUARES];
 static bitmap_t MaskFileLUT[N_SQUARES];
 static bitmap_t PieceLUT[N_SQUARES*N_SQUARES];
 bitmap_t PawnAttacks[N_SQUARES*N_SQUARES][ALL];
-bitmap_t KnightAttacks[N_SQUARES*N_SQUARES][ALL];
+bitmap_t KnightAttacks[N_SQUARES*N_SQUARES];
 
-static int KnightsMoves[8][2] = {{2,1},{2,-1},{-2,1},{2,-1},{1,1},{1,-1},{1,2},{1,-2}};
+static int KnightsMoves[8][2] = {{2,1},{2,-1},{-2,1},{-2,-1},{1,2},{1,-2},{-1,2},{-1,-2}};
 
 int GetRank(int index)
 {
@@ -211,18 +211,16 @@ void InitPawnAttacks()
 /* 
 - generate knight attacks
 - here for certain square all 8 direction move are tried and checked if they are on board
-- also possible to use bitwise offsets: 17, 15,...
+- also possible to use bitwise offsets: 17, 15, 10, -6, 
  */
-bitmap_t GenerateKnightAttacks(int square, color_t color)
+bitmap_t GenerateKnightAttacks(int square)
 {
     int i = 0;
-    int cur_index = 0;
     int x = 0, y = 0, new_x = 0, new_y = 0;
-    bitmap_t attack = 0L;
     bitmap_t board = 0L;
 
-    x = GetRank(cur_index);
-    y = GetFile(cur_index);
+    x = GetRank(square);
+    y = GetFile(square);
 
     for (i=0; i<8; ++i)
     {
@@ -231,7 +229,7 @@ bitmap_t GenerateKnightAttacks(int square, color_t color)
 
         if (CheckMoveInBoard(new_x, new_y))
         {
-            BitBoardSetOn(board, GetIndex(new_x, new_y));
+            board = BitBoardSetOn(board, GetIndex(new_x, new_y));
         }
         
     }
@@ -246,9 +244,7 @@ void InitKnightAttacks()
 
     for (; square<64; ++square)
     {
-        KnightAttacks[square][WHITE] = GenerateKnightAttacks(square, WHITE);
-        KnightAttacks[square][BLACK] = GenerateKnightAttacks(square, BLACK);
-
+        KnightAttacks[square] = GenerateKnightAttacks(square);
     }
 
 }

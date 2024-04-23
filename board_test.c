@@ -35,15 +35,15 @@ void TestPawnAttacks()
     DestroyBoard(board);
 }
 
-void TestPawnAttacks()
+void TestKnightAttack()
 {
     board_t *board = NULL;
 
     puts("Test knight attacks\n");
     board = CreateBoard();
     
-    PrintBitsBoard(KnightAttacks[a4][WHITE]);
-    PrintBitsBoard(KnightAttacks[e5][BLACK]);
+    PrintBitsBoard(KnightAttacks[a4]);
+    PrintBitsBoard(KnightAttacks[e5]);
 
     DestroyBoard(board);
 }
