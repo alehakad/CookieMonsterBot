@@ -48,6 +48,8 @@ extern bitmap_t KingAttacks[N_SQUARES*N_SQUARES];
 void PrintBoard(board_t *board);
 void PrintColorBoard(board_t *board, color_t color);
 void PrintBitsBoard(bitmap_t board);
+bitmap_t SetOccupancy(int index, int n_bits_in_mask, bitmap_t attack_mask);
+bitmap_t GenerateRookAttacks(int square);
 #endif
 
 #endif

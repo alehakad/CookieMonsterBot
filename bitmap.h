@@ -132,4 +132,31 @@ Return value: max possible bit array with all bits set.
 */
 bitmap_t BitBoardSetAll(bitmap_t bit_array);
 
+/*
+Description:
+Count set bits in bit array with Kernigan's algorithm
+
+Arguments:
+	bit_array.
+
+Return value: number of set bits.
+
+*/
+int CountSetBits(bitmap_t bit_array);
+
+
+
+/*
+Description:
+Get index of LSB of bit array
+
+Arguments:
+	bit_array.
+
+Return value: index of first set bit in bit_array.
+
+*/
+int GetLSBIndex(bitmap_t bit_array);
+
+
 #endif

@@ -56,3 +56,26 @@ bitmap_t BitBoardSetAll(bitmap_t bit_array)
 	UNUSED(bit_array);
 	return SIZE_MAX; 
 }
+
+
+int CountSetBits(bitmap_t bit_array)
+{	
+	int count = 0;
+	while (0 != bit_array)
+	{
+		bit_array = bit_array&(bit_array-1);
+		++count; 
+	}
+	
+	return count;
+}
+
+int GetLSBIndex(bitmap_t bit_array)
+{
+	if (bit_array)
+	{
+		return CountSetBits((bit_array&-bit_array)-1);
+	}
+
+	return -1;
+}

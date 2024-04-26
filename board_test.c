@@ -62,12 +62,27 @@ void TestKingAttacks()
     DestroyBoard(board);
 }
 
+void TestOccupancySquares()
+{
+    board_t *board = NULL;
+    bitmap_t rook_attack = 0;
+
+    puts("Test occupancy squares\n");
+    board = CreateBoard();
+    
+    rook_attack = GenerateRookAttacks(a4);
+    PrintBitsBoard(SetOccupancy(3, CountSetBits(rook_attack), rook_attack));
+
+    DestroyBoard(board);
+}
+
 int main()
 {
     TestBoard();
     TestPawnAttacks();
     TestKnightAttack();
     TestKingAttacks();
+    TestOccupancySquares();
 
     return 0;
 }

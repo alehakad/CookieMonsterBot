@@ -203,7 +203,7 @@ bitmap_t GeneratePawnAttacks(int square, color_t color)
 /* 
 - generate knight attacks
 - here for certain square all 8 direction move are tried and checked if they are on board
-- also possible to use bitwise offsets: 17, 15, 10, -6, 
+- also possible to use bitwise offsets: 17, 15, 10, 6, -17, -15, -10, -6
  */
 bitmap_t GenerateKnightAttacks(int square)
 {
@@ -252,6 +252,70 @@ bitmap_t GenerateKingAttacks(int square)
     }
 
     return board;
+}
+
+/* get attacking rook squares except last file and index, to use further in magic bitboard */
+bitmap_t GenerateRookAttacks(int square)
+{
+    bitmap_t board = 0L;
+
+    int row = 0, file = 0;
+    int x = 0, y = 0;
+
+    x = GetRank(square);
+    y = GetFile(square);
+
+    for (row = x+1; row<=6; ++row)
+    {
+        board |= (1L << GetIndex(row, y));
+    }
+    for (row = x-1; row>=1; --row)
+    {
+        board |= (1L << GetIndex(row, y));
+    }
+    for (file=y-1; file>=1; --file)
+    {
+        board |= (1L << GetIndex(x, file));
+    }
+    for (file=y+1; file>=6; ++file)
+    {
+        board |= (1L << GetIndex(x, file));
+    }
+
+    return board;
+
+}
+
+/* get attacking bishop squares except last file and index, to use further in magic bitboard */
+bitmap_t GenerateBishopAttacks(int square)
+{
+    bitmap_t board = 0L;
+
+    int row = 0, file = 0;
+    int x = 0, y = 0;
+
+    x = GetRank(square);
+    y = GetFile(square);
+
+    for (row = x+1, file=y+1; row<=6 && file<=6; ++row, ++file)
+    {
+        board |= (1L << GetIndex(row, file));
+    }
+    for (row = x-1, file=y+1; row>=1 && file<=6; --row, ++file)
+    {
+        board |= (1L << GetIndex(row, file));
+    }
+    for (row = x+1, file=y-1; row<=6 && file>=1; ++row, --file)
+    {
+        board |= (1L << GetIndex(row, file));
+    }
+    for (row = x-1, file=y-1; row>=1 && file>=1; --row, --file)
+    {
+        board |= (1L << GetIndex(row, file));
+    }
+
+    return board;
+
 }
 
 static char GetFigure(board_t *board, color_t color, int square)
@@ -374,6 +438,31 @@ void InitLeaperAttacks()
     }
 
 }
+
+/* getting occupancy map by atack mask */
+/* index is number of occupancy variation out of all subsets of attack map*/
+bitmap_t SetOccupancy(int index, int n_bits_in_mask, bitmap_t attack_mask)
+{
+    bitmap_t occupancy = 0L;
+    int square = 0;
+    int count = 0;
+
+
+    for (count = 0;count < n_bits_in_mask; ++count)
+    {
+        square = GetLSBIndex(attack_mask);
+
+        attack_mask =  BitBoardSetOff(attack_mask, square);
+        if (index & (1 << count))
+        {
+            occupancy = BitBoardSetOn(occupancy, square);
+        }
+    }
+
+    return occupancy;
+}
+
+
 
 board_t *CreateBoard()
 {
