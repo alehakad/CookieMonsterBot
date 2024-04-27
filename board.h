@@ -2,6 +2,7 @@
 #define __BOARD_H__
 
 #include "bitmap.h" /* bitboard header */
+#include "random_numbers.h" /* rand numbers header */
 
 #define N_SQUARES 8
 #define OPOSITE_COLOR(color) (color == WHITE) ? BLACK : WHITE
@@ -44,12 +45,21 @@ extern bitmap_t PawnAttacks[N_SQUARES*N_SQUARES][ALL];
 extern bitmap_t KnightAttacks[N_SQUARES*N_SQUARES];
 extern bitmap_t KingAttacks[N_SQUARES*N_SQUARES];
 
+extern int BishopNMoves[64];
+extern int RookNMoves[64];
+
 
 void PrintBoard(board_t *board);
 void PrintColorBoard(board_t *board, color_t color);
 void PrintBitsBoard(bitmap_t board);
 bitmap_t SetOccupancy(int index, int n_bits_in_mask, bitmap_t attack_mask);
 bitmap_t GenerateRookAttacks(int square);
+bitmap_t GenerateBishopAttacks(int square);
+int GetIndex(int rank, int file);
+void InitSliderAttacks();
+bitmap_t GenerateBishopAttacksOnTheFly(int square, bitmap_t blockers);
+bitmap_t SetOccupancy(int index, int n_bits_in_mask, bitmap_t attack_mask);
+void InitMagicNumbers();
 #endif
 
 #endif

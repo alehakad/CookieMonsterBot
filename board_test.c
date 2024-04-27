@@ -53,7 +53,7 @@ void TestKingAttacks()
 
     board_t *board = NULL;
 
-    puts("Test knight attacks\n");
+    puts("Test king attacks\n");
     board = CreateBoard();
     
     PrintBitsBoard(KingAttacks[a4]);
@@ -76,13 +76,43 @@ void TestOccupancySquares()
     DestroyBoard(board);
 }
 
+void TestOnFlyAttacks()
+{
+    int square = 0, o_index = 0;
+    bitmap_t board = 0, o_board = 0;
+    InitSliderAttacks();
+    for (square = 0; square < 64; ++square)
+    {
+        printf("square number %d\n", square);
+        o_board = SetOccupancy(o_index, BishopNMoves[square], GenerateBishopAttacks(square));
+        printf("occupancy board is \n");
+        PrintBitsBoard(o_board);
+        board = GenerateBishopAttacksOnTheFly(square,o_board);
+        printf("bishop moves are  \n");
+        PrintBitsBoard(board);
+        
+        getchar();
+    }
+}
+
+void TestMagicNumbers()
+{
+    InitMagicNumbers();
+}
+
+
 int main()
 {
+    
     TestBoard();
     TestPawnAttacks();
     TestKnightAttack();
     TestKingAttacks();
     TestOccupancySquares();
+    
+    TestOnFlyAttacks();
+    
+    /* TestMagicNumbers(); */
 
     return 0;
 }

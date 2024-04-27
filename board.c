@@ -1,5 +1,9 @@
 #include <stddef.h> /* size_t */
 #include <stdlib.h> /* malloc */
+#include <stdlib.h> /* rand */
+#include <time.h> /* time */
+#include <string.h> /* memset */
+
 
 #ifndef NDEBUG
 #include <stdio.h> /* printf */
@@ -38,6 +42,148 @@ bitmap_t PawnAttacks[N_SQUARES*N_SQUARES][ALL];
 bitmap_t KnightAttacks[N_SQUARES*N_SQUARES];
 bitmap_t KingAttacks[N_SQUARES*N_SQUARES];
 
+/* number of set bits from each position */
+int BishopNMoves[64] = {0};
+int RookNMoves[64] = {0};
+
+/* magic numbers */
+static bitmap_t BishopMagicNumbers[64] = 
+{
+    0x10c4048800000082UL,
+    0x10800100021400UL,
+    0x1420810000a00000UL,
+    0x4a80040000042UL,
+    0x300918100000800UL,
+    0x5005000a8080403UL,
+    0x20100200700080UL,
+    0x6400411200444402UL,
+    0x1800c0232440040UL,
+    0x3200a40580200001UL,
+    0x8048a000080000UL,
+    0x2022188000040120UL,
+    0x34840818000002UL,
+    0x1400001004150000UL,
+    0x1800101200UL,
+    0x42018002d80300aUL,
+    0x4004500a30401002UL,
+    0x102180b0004121UL,
+    0x4001820403000062UL,
+    0x1520040030002800UL,
+    0x100000008b1080UL,
+    0x2080248200080802UL,
+    0x4892000540400048UL,
+    0x2008000004069210UL,
+    0x504010a040410720UL,
+    0xc1000422802480UL,
+    0x8a80090000400402UL,
+    0x80c002000200000UL,
+    0x620020000348940UL,
+    0x8009008000UL,
+    0x8101282402200aUL,
+    0x2902001841ac02e0UL,
+    0x4018a4000100200UL,
+    0x231002a00084088UL,
+    0x12040600810c880UL,
+    0x480480004040015UL,
+    0x200005a0c48002UL,
+    0x98c1226f240020UL,
+    0x2000084044001401UL,
+    0xc408004a001040UL,
+    0x54602100408810UL,
+    0x2000819080200081UL,
+    0x400040402c00004UL,
+    0x62040981c0001032UL,
+    0x2100222002400204UL,
+    0x110400004a001911UL,
+    0x8401002041c88UL,
+    0x1901020400400510UL,
+    0x409810042420040UL,
+    0x8302420c01084200UL,
+    0x40604002c0103000UL,
+    0x48a400048c000008UL,
+    0x4c0088200004c241UL,
+    0x200008990040000UL,
+    0x12081800c0104008UL,
+    0x8012481000210800UL,
+    0x24100080e0864004UL,
+    0x4104204a60812001UL,
+    0x4800000220422080UL,
+    0x422008180c1020UL,
+    0x2308102a00414400UL,
+    0x1a02002820002020UL,
+    0xd880020102a80104UL,
+    0x100008008004980UL,
+};
+
+static bitmap_t RookMagicNumbers[64] = 
+{
+    0x4029000001000020UL,
+    0x6400000100004UL,
+    0x9480800100080200UL,
+    0x10000802040003c0UL,
+    0x1010430800024000UL,
+    0x8a0080540180040UL,
+    0x44000200a08801UL,
+    0x410041240190800UL,
+    0x248400008050201UL,
+    0x8400000100002UL,
+    0x16403402c2000000UL,
+    0x1041468000001UL,
+    0x20800000004000UL,
+    0x2084100281084UL,
+    0x2018a80200021000UL,
+    0x1804000b00810100UL,
+    0x10a0404800020UL,
+    0xa008140900120000UL,
+    0x800002808000284UL,
+    0x1040100040421001UL,
+    0x822042000UL,
+    0xccc01088b5106UL,
+    0x41001424280c0002UL,
+    0x104800000103cUL,
+    0x5200a10004100804UL,
+    0x10c0d01405001000UL,
+    0x4000000018002201UL,
+    0x4000a6000004UL,
+    0xc809020040000UL,
+    0x4820028000000UL,
+    0x88044000040b89UL,
+    0x400808000c411a40UL,
+    0x1424200012880200UL,
+    0x2000001006481100UL,
+    0xc40450010024000UL,
+    0x400a00a030400a8UL,
+    0x40a00018e000006UL,
+    0x4100010080082040UL,
+    0x401200c1002012UL,
+    0xc004140010000800UL,
+    0x2002080440700040UL,
+    0x8000300019200UL,
+    0x801042040301002UL,
+    0x4160c1c040830060UL,
+    0x8020293001200840UL,
+    0x8005f00080000080UL,
+    0x1080418c0012000UL,
+    0x2081102000284000UL,
+    0x2015002405000UL,
+    0x420800000000100UL,
+    0x8210200000020UL,
+    0x200806200a008UL,
+    0x100a000000818090UL,
+    0x8050002148400UL,
+    0x406800800c002000UL,
+    0x148021000e00a0bUL,
+    0x1800048020808a20UL,
+    0x40000400400084UL,
+    0x2000094011UL,
+    0x42c0015000000028UL,
+    0x202002000100608UL,
+    0x802490000048000UL,
+    0x8010200101420014UL,
+    0xc00010000006UL,
+};
+
+
 static int KnightsMoves[8][2] = {{2,1},{2,-1},{-2,1},{-2,-1},{1,2},{1,-2},{-1,2},{-1,-2}};
 static int KingMoves[8][2] = {{1,1},{1,0},{1,-1},{-1,1},{-1,0},{-1,-1},{0,-1},{0,1}};
 
@@ -57,6 +203,10 @@ int GetIndex(int rank, int file)
     return (rank<<3) + file;
 }
 
+bitmap_t GenerateMagicNumber()
+{
+    return GetRandomU64Number() & GetRandomU64Number() & GetRandomU64Number();
+}
 
 static void FillLuts()
 {
@@ -254,6 +404,7 @@ bitmap_t GenerateKingAttacks(int square)
     return board;
 }
 
+
 /* get attacking rook squares except last file and index, to use further in magic bitboard */
 bitmap_t GenerateRookAttacks(int square)
 {
@@ -267,19 +418,19 @@ bitmap_t GenerateRookAttacks(int square)
 
     for (row = x+1; row<=6; ++row)
     {
-        board |= (1L << GetIndex(row, y));
+        board |= (1UL << GetIndex(row, y));
     }
     for (row = x-1; row>=1; --row)
     {
-        board |= (1L << GetIndex(row, y));
+        board |= (1UL << GetIndex(row, y));
     }
     for (file=y-1; file>=1; --file)
     {
-        board |= (1L << GetIndex(x, file));
+        board |= (1UL << GetIndex(x, file));
     }
-    for (file=y+1; file>=6; ++file)
+    for (file=y+1; file<=6; ++file)
     {
-        board |= (1L << GetIndex(x, file));
+        board |= (1UL << GetIndex(x, file));
     }
 
     return board;
@@ -299,19 +450,123 @@ bitmap_t GenerateBishopAttacks(int square)
 
     for (row = x+1, file=y+1; row<=6 && file<=6; ++row, ++file)
     {
-        board |= (1L << GetIndex(row, file));
+        board |= (1UL << GetIndex(row, file));
     }
     for (row = x-1, file=y+1; row>=1 && file<=6; --row, ++file)
     {
-        board |= (1L << GetIndex(row, file));
+        board |= (1UL << GetIndex(row, file));
     }
     for (row = x+1, file=y-1; row<=6 && file>=1; ++row, --file)
     {
-        board |= (1L << GetIndex(row, file));
+        board |= (1UL << GetIndex(row, file));
     }
     for (row = x-1, file=y-1; row>=1 && file>=1; --row, --file)
     {
-        board |= (1L << GetIndex(row, file));
+        board |= (1UL << GetIndex(row, file));
+    }
+
+    return board;
+
+}
+
+/* generate bishop possible moves on current board with blocking pieces */
+bitmap_t GenerateBishopAttacksOnTheFly(int square, bitmap_t blockers)
+{
+    bitmap_t attacks = 0L;
+
+    int row = 0, file = 0, cur_index = 0;
+    int x = 0, y = 0;
+
+    x = GetRank(square);
+    y = GetFile(square);
+
+    for (row = x+1, file=y+1; row<=7 && file<=7; ++row, ++file)
+    {
+        cur_index = GetIndex(row, file);
+        attacks |= (1UL << cur_index);
+        if (1UL << cur_index & blockers)
+        {
+            break;
+        }
+    }
+    for (row = x-1, file=y+1; row>=0 && file<=7; --row, ++file)
+    {
+        cur_index = GetIndex(row, file);
+        attacks |= (1UL << cur_index);
+        if (1UL << cur_index & blockers)
+        {
+            break;
+        }
+    }
+    for (row = x+1, file=y-1; row<=7 && file>=0; ++row, --file)
+    {
+        cur_index = GetIndex(row, file);
+        attacks |= (1UL << cur_index);
+        if (1UL << cur_index & blockers)
+        {
+            break;
+        }
+    }
+    for (row = x-1, file=y-1; row>=0 && file>=0; --row, --file)
+    {
+        cur_index = GetIndex(row, file);
+        attacks |= (1UL << cur_index);
+        if (1UL << cur_index & blockers)
+        {
+            break;
+        }
+    }
+
+    return attacks;
+}
+
+
+/* generate rook possible moves on current board with blocking pieces */
+bitmap_t GenerateRookAttacksOnTheFly(int square, bitmap_t blockers)
+{
+    bitmap_t board = 0L;
+
+    int row = 0, file = 0, cur_index = 0;
+    int x = 0, y = 0;
+
+    x = GetRank(square);
+    y = GetFile(square);
+
+    for (row = x+1; row<=6; ++row)
+    {
+        cur_index = GetIndex(row, y);
+        board |= (1UL << cur_index);
+        if ((1UL << cur_index) & blockers)
+        {
+            break;
+        }
+    }
+    for (row = x-1; row>=1; --row)
+    {
+        cur_index = GetIndex(row, y);
+        board |= (1UL << cur_index);
+        if ((1UL << cur_index) & blockers)
+        {
+            break;
+        }
+    }
+    for (file=y-1; file>=1; --file)
+    {
+        cur_index = GetIndex(x, file);
+        board |= (1UL << cur_index);
+        if ((1UL << cur_index) & blockers)
+        {
+            break;
+        }
+    }
+    for (file=y+1; file<=6; ++file)
+    {
+        cur_index = GetIndex(x, file);
+        board |= (1UL << cur_index);
+        if ((1UL << cur_index) & blockers)
+        {
+            break;
+        }
     }
 
     return board;
@@ -462,7 +717,110 @@ bitmap_t SetOccupancy(int index, int n_bits_in_mask, bitmap_t attack_mask)
     return occupancy;
 }
 
+/* find magic number for hashing for bishop and rook */
+/* relevant bits - number of avaliable bits-squares for other figures */
+bitmap_t FindMagicNumber(int square, int relevant_bits, int is_bishop)
+{
+    bitmap_t attack_mask = 0, magic_number = 0;
 
+    /* 4096 - max number of possible occupancies for all squares of rook and bishop */
+    bitmap_t occupancies[4096] = {0};
+    bitmap_t attacks[4096] = {0};
+    bitmap_t used_attacks[4096] = {0};
+
+    int occupancy_indexes = 0, random_count = 0;
+
+    int max_random_count = 100000000;
+
+    int magic_index = 0, index = 0, fail = 0;
+
+    attack_mask = is_bishop ? GenerateBishopAttacks(square) : GenerateRookAttacks(square);
+
+    /* max number of possible occupancy blocking variations */
+    occupancy_indexes = 1 << relevant_bits;
+
+    for (index = 0; index < occupancy_indexes; ++index)
+    {
+        occupancies[index] = SetOccupancy(index, relevant_bits, attack_mask);
+    
+        attacks[index] = is_bishop ? GenerateBishopAttacksOnTheFly(square, occupancies[index]) : GenerateRookAttacksOnTheFly(square, occupancies[index]);
+    }
+
+    /* generate and test magic number, it should be perfect hash */
+    for (random_count = 0; random_count < max_random_count; ++random_count)
+    {
+        magic_number = GenerateMagicNumber();
+        /* skip wrong magic numbers */
+        if (CountSetBits((attack_mask * magic_number) & 0xFF00000000000000) < 6)
+        {
+            continue;
+        }
+        
+        /* set all used attacks to 0s s*/
+        memset(used_attacks, 0UL, sizeof(used_attacks));
+
+        for (index = 0,fail = 0; !fail && index < occupancy_indexes; ++index)
+        {
+            magic_index = (int)((occupancies[index]*magic_number) >> (64 - relevant_bits));
+        
+            if (used_attacks[magic_index] == 0UL)
+            {
+                used_attacks[magic_index] = attacks[index];
+            }
+            else if (used_attacks[magic_index] != attacks[index])
+            {
+                fail = 1;
+            }
+        }
+
+        if (!fail)
+        {
+            return magic_number;
+        }
+    }
+
+    puts("Magic number failed");
+
+    return 0UL;
+}
+
+void InitMagicNumbers()
+{
+    int square = 0;
+    bitmap_t magic_number = 0;
+    /* for bishop */
+    puts("Bishop magic numbers");
+    for (square=0; square < 64; ++square)
+    {
+        magic_number = FindMagicNumber(square, BishopNMoves[square], 1);
+        printf("0x%lxUL,\n", magic_number);
+        BishopMagicNumbers[square] = magic_number;
+    }
+
+    puts("Rook magic numbers");
+    for (square=0; square < 64; ++square)
+    {
+        
+        magic_number = FindMagicNumber(square, BishopNMoves[square], 0);
+        printf("0x%lxUL,\n", magic_number);
+        RookMagicNumbers[square] = magic_number;
+    }
+}
+
+void InitSliderAttacks()
+{
+    int square = 0;
+    bitmap_t board = 0;
+
+    for (; square<64; ++square)
+    {
+        board = GenerateBishopAttacks(square);
+        BishopNMoves[square] = CountSetBits(board);
+        board = GenerateRookAttacks(square);
+        RookNMoves[square] = CountSetBits(board);
+    }
+
+}
 
 board_t *CreateBoard()
 {
@@ -483,6 +841,12 @@ board_t *CreateBoard()
 
     /* init attacks luts for pieces */
     InitLeaperAttacks();
+
+    /* init slider pieces - rook and bishop */
+    /*InitSliderAttacks();*/
+
+    /* init magic numbers */
+    /*InitMagicNumbers();*/
 
     return board;
 }
