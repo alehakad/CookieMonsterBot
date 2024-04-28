@@ -1,3 +1,5 @@
+/* generated magic numbers - not fully right ?? */
+
 Bishop magic numbers
 0x10c4048800000082UL,
 0x10800100021400UL,

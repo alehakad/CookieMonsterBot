@@ -60,6 +60,8 @@ void InitSliderAttacks();
 bitmap_t GenerateBishopAttacksOnTheFly(int square, bitmap_t blockers);
 bitmap_t SetOccupancy(int index, int n_bits_in_mask, bitmap_t attack_mask);
 void InitMagicNumbers();
+bitmap_t GetBishopAttacks(int square, bitmap_t occupancy);
+bitmap_t GetRookAttacks(int square, bitmap_t occupancy);
 #endif
 
 #endif

@@ -101,17 +101,81 @@ void TestMagicNumbers()
 }
 
 
+void TestGenerateNSliderMoves(int is_bishop)
+{
+    int rank = 0, file = 0, res = 0, square = 0;
+
+    for (rank = 0; rank<8; ++rank)
+    {
+        for (file = 0; file<8; ++file)
+        {
+            square = GetIndex(rank, file);
+            if (is_bishop)
+            {
+                res = CountSetBits(GenerateBishopAttacks(square));
+            }
+            else
+            {
+                res = CountSetBits(GenerateRookAttacks(square));
+            }
+            printf("%d, ", res);
+
+        }
+        puts("");
+    }
+}
+
+void TestBishopRookAttacks()
+{
+    board_t *board = NULL;
+    bitmap_t bishop_attack = 0;
+
+    board = CreateBoard();
+    puts("Test bishop and rook attacks\n");
+    
+    bishop_attack = 0UL;
+
+    puts("Print bishop attack");
+    PrintBitsBoard(GetBishopAttacks(d4, bishop_attack));
+    puts("Print rook attack");
+    PrintBitsBoard(GetRookAttacks(d4, bishop_attack));
+
+    bishop_attack = BitBoardSetOn(bishop_attack, c5);
+
+    puts("Print bishop attack");
+    PrintBitsBoard(GetBishopAttacks(d4, bishop_attack));
+
+    bishop_attack = BitBoardSetOn(bishop_attack, f2);
+    bishop_attack = BitBoardSetOn(bishop_attack, h1);
+    bishop_attack = BitBoardSetOn(bishop_attack, d7);
+    bishop_attack = BitBoardSetOn(bishop_attack, d1);
+    bishop_attack = BitBoardSetOn(bishop_attack, f4);
+
+    puts("Print bishop attack");
+    PrintBitsBoard(GetBishopAttacks(d4, bishop_attack));
+    puts("Print rook attack");
+    PrintBitsBoard(GetRookAttacks(d4, bishop_attack));
+
+    DestroyBoard(board);
+}
+
 int main()
 {
-    
+    /*
     TestBoard();
     TestPawnAttacks();
     TestKnightAttack();
     TestKingAttacks();
     TestOccupancySquares();
+    */
+    /* TestOnFlyAttacks(); */
+
+    TestBishopRookAttacks();
+
     
-    TestOnFlyAttacks();
     
+    /* TestGenerateNSliderMoves(1); */
+    /* TestGenerateNSliderMoves(0); */
     /* TestMagicNumbers(); */
 
     return 0;
