@@ -133,8 +133,6 @@ void TestBishopRookAttacks()
     board = CreateBoard();
     puts("Test bishop and rook attacks\n");
     
-    bishop_attack = 0UL;
-
     puts("Print bishop attack");
     PrintBitsBoard(GetBishopAttacks(d4, bishop_attack));
     puts("Print rook attack");
@@ -159,10 +157,31 @@ void TestBishopRookAttacks()
     DestroyBoard(board);
 }
 
+void TestQueenAttacks()
+{
+
+    board_t *board = NULL;
+    bitmap_t queen_attack = 0;
+
+    board = CreateBoard();
+    puts("Test queen attacks\n");
+
+    puts("Print queen attack");
+    PrintBitsBoard(GetQueenAttacks(d4, queen_attack));
+
+    queen_attack = BitBoardSetOn(queen_attack, c1);
+    puts("Print bishop attack");
+    PrintBitsBoard(GetQueenAttacks(a1, queen_attack));
+
+    DestroyBoard(board);
+}
+
+
 int main()
 {
-    /*
+    
     TestBoard();
+    /*
     TestPawnAttacks();
     TestKnightAttack();
     TestKingAttacks();
@@ -171,6 +190,7 @@ int main()
     /* TestOnFlyAttacks(); */
 
     TestBishopRookAttacks();
+    TestQueenAttacks();
 
     
     

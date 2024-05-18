@@ -4,12 +4,22 @@
 #include <time.h> /* time */
 #include <string.h> /* memset */
 
-
 #ifndef NDEBUG
 #include <stdio.h> /* printf */
+#include <wchar.h> /* to print unicode */
+#include <locale.h> /* locale */
 #endif
 
 #include "board.h" /* board header */
+
+/* FEN positions to represent board */
+/* 8 ranks, side_to_move, castling rights, enpassant squares */
+/* numbers represent empty squares */
+#define empty_board "8/8/8/8/8/8/8/8 w - - "
+#define start_position "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
+#define tricky_position "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
+#define killer_position "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
+
 /* 
 - board will be represented by bitboards of 64 bits for every type of figure and color;
 - also all figures bitboard is saved
@@ -23,6 +33,8 @@ struct color_board
     bitmap_t queen;
     bitmap_t bishops;
     bitmap_t all;
+    int castle_k;
+    int castle_q;
 };
 
 struct board
@@ -30,12 +42,26 @@ struct board
     color_board_t whites;
     color_board_t blacks;
     bitmap_t all;
+    int side_to_move;
+    int enpassant;
 };
 
 enum 
 {
     ROOK,
     BISHOP
+};
+
+
+enum
+{
+    wp = L'♙',
+    wkn = L'♘',
+    wr = L'♖',
+    wq = L'♕',
+    wk = L'♔',
+    wb = L'♗',
+
 };
 
 static bitmap_t ClearRankLUT[N_SQUARES];
@@ -606,40 +632,41 @@ bitmap_t GenerateRookAttacksOnTheFly(int square, bitmap_t blockers)
 
 }
 
-static char GetFigure(board_t *board, color_t color, int square)
+static wchar_t GetFigure(board_t *board, color_t color, int square)
 {
     color_board_t c_board = (color == WHITE) ? board->whites : board->blacks;
-
+    int offset = (color == WHITE) ? 0 : 6; 
+    
     if (BitBoardIsOn(c_board.pawns, square))
     {
-        return 'p';
+        return wp+offset;
     }
     if (BitBoardIsOn(c_board.knights, square))
     {
-        return 'n';
+        return wk+offset;
     }
     if (BitBoardIsOn(c_board.rooks, square))
     {
-        return 'r';
+        return wr+offset;
     }
     if (BitBoardIsOn(c_board.queen, square))
     {
-        return 'q';
+        return wq+offset;
     }
     if (BitBoardIsOn(c_board.king, square))
     {
-        return 'k';
+        return wk+offset;
     }
     if (BitBoardIsOn(c_board.bishops, square))
     {
-        return 'b';
+        return wb+offset;
     }
     if (BitBoardIsOn(c_board.all, square))
     {
         return '1';
     }
 
-    return '0';
+    return '.';
 }
 
 
@@ -675,7 +702,7 @@ void PrintColorBoard(board_t *board, color_t color)
 {
     int i = 0, j = 0;
     int square = 0;
-    char figure = 0;
+    wchar_t figure = 0;
 
     for (i=0; i<8; ++i)
     {
@@ -687,11 +714,11 @@ void PrintColorBoard(board_t *board, color_t color)
             }
             square = GetIndex(i,j);
             figure = GetFigure(board, color, square);
-            if (color == ALL && GetFigure(board, color, square) == '0')
+            if (color == ALL && GetFigure(board, color, square) == '.')
             {
                 figure = GetFigure(board, OPOSITE_COLOR(color), square);
             }
-            printf("%c ",figure);
+            printf("%lc ",figure);
         }
         puts("");
     }
@@ -708,6 +735,8 @@ void PrintBoard(board_t *board)
     PrintColorBoard(board, BLACK);
     puts("Full board is\n");
     PrintColorBoard(board, ALL);
+    printf("Side: %s\n", board->side_to_move ? "black" : "white");
+    printf("Enpassant: %s\n", (board->enpassant != no_sq) ? "yes" : "no");
 }
 
 #endif
@@ -898,7 +927,7 @@ bitmap_t GetBishopAttacks(int square, bitmap_t occupancy)
     return BishopAttacks[square][occupancy];
 }
 
-/* get bishop attacks for current occupancy */
+/* get rook attacks for current occupancy */
 bitmap_t GetRookAttacks(int square, bitmap_t occupancy)
 {
     occupancy &= RookMasks[square];
@@ -909,9 +938,23 @@ bitmap_t GetRookAttacks(int square, bitmap_t occupancy)
 }
 
 
+/* get queen attacks for current occupancy by combaining rook and bishop attacks */
+bitmap_t GetQueenAttacks(int square, bitmap_t occupancy)
+{
+    bitmap_t queen_attacks = 0;
+
+    queen_attacks = GetBishopAttacks(square, occupancy);
+
+    queen_attacks |= GetRookAttacks(square, occupancy);
+
+    return queen_attacks;
+}
+
 board_t *CreateBoard()
 {
     board_t *board = NULL;  
+
+    setlocale(LC_CTYPE, "en_US.UTF-8");
 
     board = malloc(sizeof(board_t));
     if (!board)
@@ -922,6 +965,13 @@ board_t *CreateBoard()
     board->whites = FillColorBoard(WHITE);
     board->blacks = FillColorBoard(BLACK);
     board->all = board->whites.all | board->blacks.all;
+
+    board->enpassant = no_sq;
+    board->side_to_move = 0;
+    board->whites.castle_k = 1;
+    board->whites.castle_q = 1;
+    board->blacks.castle_k = 1;
+    board->blacks.castle_q = 1;
 
     /* init luts for files and ranks */
     FillLuts();
@@ -937,10 +987,18 @@ board_t *CreateBoard()
     /* init magic numbers */
     /*InitMagicNumbers();*/
 
+
     return board;
 }
 
 void DestroyBoard(board_t *board)
 {
     free(board);
+}
+
+
+/* parse FEN string */
+void parse_fen(char *fen)
+{
+    /* TODO: */
 }
